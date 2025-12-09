@@ -253,4 +253,101 @@
 
         const total = items.reduce((sum, item) => sum + item.chance, 0);
         if (total < 100) {
-          alert(`총 확률이
+          alert(`총 확률이 100%가 아닙니다. 현재: ${total}%`);
+          return;
+        }
+
+        const resultDiv = document.getElementById("result");
+        let elapsed = 0;
+        const duration = 5000; // 5초
+        const intervalTime = 100;
+
+        const interval = setInterval(() => {
+          const tempItemIndex = Math.floor(Math.random() * items.length);
+          const tempItem = items[tempItemIndex];
+          const color = rainbowColors[tempItemIndex % rainbowColors.length];
+
+          resultDiv.classList.remove("spin-flash");
+          void resultDiv.offsetWidth;
+          resultDiv.textContent = `돌리는 중... ${tempItem.name}`;
+          resultDiv.style.color = color;
+          resultDiv.classList.add("spin-flash");
+
+          elapsed += intervalTime;
+          if (elapsed >= duration) {
+            clearInterval(interval);
+
+            const rand = Math.random() * total;
+            let cumulative = 0;
+            for (let i = 0; i < items.length; i++) {
+              cumulative += items[i].chance;
+              if (rand < cumulative) {
+                const winColor = rainbowColors[i % rainbowColors.length];
+                resultDiv.textContent = `🎯 당첨 벌칙: ${items[i].name}`;
+                resultDiv.style.color = winColor;
+
+                // 🔊 결과 사운드 재생
+                resultSound.currentTime = 0;
+                resultSound.play();
+                return;
+              }
+            }
+          }
+        }, intervalTime);
+      }
+
+      function savePreset() {
+        const name = presetNameInput.value.trim();
+        if (!name) {
+          alert("프리셋 이름을 입력하세요.");
+          return;
+        }
+        localStorage.setItem("roulettePreset_" + name, JSON.stringify(items));
+        updatePresetList();
+        alert(`프리셋 '${name}'이 저장되었습니다.`);
+      }
+
+      function loadPreset() {
+        const selected = presetList.value;
+        if (!selected) {
+          alert("불러올 프리셋을 선택하세요.");
+          return;
+        }
+        const data = localStorage.getItem("roulettePreset_" + selected);
+        if (data) {
+          items = JSON.parse(data);
+          updateItemList();
+          alert(`프리셋 '${selected}'이 불러와졌습니다.`);
+        }
+      }
+
+      function deletePreset() {
+        const selected = presetList.value;
+        if (!selected) {
+          alert("삭제할 프리셋을 선택하세요.");
+          return;
+        }
+        if (confirm(`정말 프리셋 '${selected}'을 삭제하시겠습니까?`)) {
+          localStorage.removeItem("roulettePreset_" + selected);
+          updatePresetList();
+        }
+      }
+
+      function updatePresetList() {
+        presetList.innerHTML = "";
+        Object.keys(localStorage)
+          .filter(key => key.startsWith("roulettePreset_"))
+          .map(key => key.replace("roulettePreset_", ""))
+          .forEach(name => {
+            const option = document.createElement("option");
+            option.value = name;
+            option.textContent = name;
+            presetList.appendChild(option);
+          });
+      }
+
+      updatePresetList();
+    });
+  </script>
+</body>
+</html>
