@@ -148,7 +148,6 @@
   </style>
 </head>
 <body>
-  <!-- 🎵 사운드 -->
   <audio id="spinSound" src="taran.wav" preload="auto"></audio>
   <audio id="resultSound" src="taran2.wav" preload="auto"></audio>
 
@@ -164,7 +163,7 @@
   <h1>roulette 🎯</h1>
   <div>
     <input type="text" id="itemName" placeholder="벌칙 이름">
-    <input type="number" id="itemChance" placeholder="확률(%)" min="0.1" max="100" step="0.01">
+    <input type="number" id="itemChance" placeholder="확률(%)" min="0.01" max="100" step="0.01">
     <button id="addBtn">추가</button>
   </div>
   <ul id="itemList"></ul>
@@ -206,7 +205,7 @@
 
       function addItem() {
         const name = document.getElementById("itemName").value.trim();
-        const chance = parseInt(document.getElementById("itemChance").value);
+        const chance = parseFloat(document.getElementById("itemChance").value);
         if (!name || isNaN(chance) || chance <= 0) return;
 
         const currentTotal = items.reduce((sum, item) => sum + item.chance, 0);
@@ -235,7 +234,7 @@
           li.style.color = color;
           li.innerHTML = `
             <span class="item-label">${index + 1}. ${item.name}</span>
-            <span class="item-chance">(${item.chance}%)</span>
+            <span class="item-chance">(${item.chance.toString()}%)</span>
           `;
           const delBtn = document.createElement("button");
           delBtn.textContent = "삭제";
@@ -259,7 +258,7 @@
 
         const resultDiv = document.getElementById("result");
         let elapsed = 0;
-        const duration = 5000; // 5초
+        const duration = 5000;
         const intervalTime = 100;
 
         const interval = setInterval(() => {
@@ -286,7 +285,6 @@
                 resultDiv.textContent = `🎯 당첨 벌칙: ${items[i].name}`;
                 resultDiv.style.color = winColor;
 
-                // 🔊 결과 사운드 재생
                 resultSound.currentTime = 0;
                 resultSound.play();
                 return;
