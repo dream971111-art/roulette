@@ -148,6 +148,7 @@
   </style>
 </head>
 <body>
+  <!-- 🎵 사운드 -->
   <audio id="spinSound" src="taran.wav" preload="auto"></audio>
   <audio id="resultSound" src="taran2.wav" preload="auto"></audio>
 
@@ -163,6 +164,7 @@
   <h1>roulette 🎯</h1>
   <div>
     <input type="text" id="itemName" placeholder="벌칙 이름">
+    <!-- 소수점 둘째 자리까지 입력 -->
     <input type="number" id="itemChance" placeholder="확률(%)" min="0.01" max="100" step="0.01">
     <button id="addBtn">추가</button>
   </div>
@@ -203,18 +205,23 @@
       });
       deletePresetBtn.addEventListener("click", () => deletePreset());
 
+      // 항목 추가 (소수점 2자리 반영)
       function addItem() {
         const name = document.getElementById("itemName").value.trim();
-        const chance = parseFloat(document.getElementById("itemChance").value);
+        const chanceRaw = document.getElementById("itemChance").value;
+        const chance = parseFloat(chanceRaw);
+
         if (!name || isNaN(chance) || chance <= 0) return;
 
         const currentTotal = items.reduce((sum, item) => sum + item.chance, 0);
-        if (currentTotal + chance > 100) {
-          alert(`총 확률이 100%를 초과할 수 없습니다. 현재: ${currentTotal}%, 추가 시: ${currentTotal + chance}%`);
+        const newTotal = parseFloat((currentTotal + chance).toFixed(2));
+
+        if (newTotal > 100) {
+          alert(`총 확률이 100%를 초과할 수 없습니다.\n현재: ${currentTotal.toFixed(2)}%, 추가 시: ${newTotal.toFixed(2)}%`);
           return;
         }
 
-        items.push({ name, chance });
+        items.push({ name, chance: parseFloat(chance.toFixed(2)) });
         updateItemList();
         document.getElementById("itemName").value = "";
         document.getElementById("itemChance").value = "";
@@ -234,7 +241,7 @@
           li.style.color = color;
           li.innerHTML = `
             <span class="item-label">${index + 1}. ${item.name}</span>
-            <span class="item-chance">(${item.chance.toString()}%)</span>
+            <span class="item-chance">(${item.chance.toFixed(2)}%)</span>
           `;
           const delBtn = document.createElement("button");
           delBtn.textContent = "삭제";
@@ -250,9 +257,12 @@
           return;
         }
 
-        const total = items.reduce((sum, item) => sum + item.chance, 0);
-        if (total < 100) {
-          alert(`총 확률이 100%가 아닙니다. 현재: ${total}%`);
+        const totalRaw = items.reduce((sum, item) => sum + item.chance, 0);
+        const total = parseFloat(totalRaw.toFixed(2));
+
+        // 99.99까지는 부족한 걸로 보고, 99.995 이상이면 100으로 본다
+        if (total < 99.99) {
+          alert(`총 확률이 100%가 아닙니다. 현재: ${total.toFixed(2)}%`);
           return;
         }
 
