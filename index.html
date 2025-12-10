@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>접속 인증</title>
+  <style>
+    body {
+      background:#111;
+      color:#fff;
+      text-align:center;
+      padding-top:120px;
+      font-family:'DnfBitbeatV2', sans-serif;
+    }
+    input {
+      font-size:1.2em;
+      padding:0.5em;
+      border-radius:10px;
+      border:3px solid #4e00c2;
+      width:250px;
+      text-align:center;
+      background:#222;
+      color:#fff;
+    }
+    button {
+      font-size:1.1em;
+      padding:0.45em 1em;
+      border-radius:10px;
+      border:3px solid #4e00c2;
+      background:#4e00c2;
+      color:#fff;
+      margin-left:10px;
+      cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🔐 비밀번호 입력</h2>
+  <input type="password" id="pw" placeholder="PASSWORD">
+  <button onclick="login()">입장</button>
+
+  <script>
+    function login() {
+      const pw = document.getElementById("pw").value;
+      const correct = "0724"; // ← 네가 원하는 암호
+
+      if (pw === correct) {
+        window.location.href = "roulette.html";
+      } else {
+        alert("비밀번호가 틀렸습니다!");
+      }
+    }
+  </script>
+
+</body>
+</html>
