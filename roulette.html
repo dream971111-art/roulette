@@ -118,33 +118,6 @@
       margin-left: 0.2em;
       color: inherit;
     }
-
-    .top-right-buttons {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      transform: scale(0.5);
-      transform-origin: top right;
-    }
-
-    .top-right-buttons button,
-    .top-right-buttons input,
-    .top-right-buttons select {
-      font-size: 1em;
-    }
-
-    .top-right-buttons input#presetName {
-      width: 6.5em;
-    }
-
-    .top-right-buttons select#presetList {
-      font-size: 1em !important;
-      width: 7em;
-    }
-
-    .top-right-buttons button {
-      margin-left: 0.5em;
-    }
   </style>
 </head>
 <body>
@@ -152,21 +125,15 @@
   <audio id="spinSound" src="taran.wav" preload="auto"></audio>
   <audio id="resultSound" src="taran2.wav" preload="auto"></audio>
 
-  <div class="top-right-buttons">
-    <input type="text" id="presetName" placeholder="프리셋 이름">
-    <select id="presetList"></select>
-    <button id="saveBtn">💾 저장</button>
-    <button id="loadBtn">📂 불러오기</button>
-    <button id="deletePresetBtn">❌ 삭제</button>
-    <button id="clearBtn">🗑 초기화</button>
-  </div>
-
   <h1>roulette 🎯</h1>
+
   <div>
     <input type="text" id="itemName" placeholder="벌칙 이름">
-    <input type="number" id="itemChance" placeholder="확률(%)" min="1" max="100">
+    <!-- 🔥 소수점 2자리 허용 -->
+    <input type="number" id="itemChance" placeholder="확률(%)" min="0.01" max="100" step="0.01">
     <button id="addBtn">추가</button>
   </div>
+
   <ul id="itemList"></ul>
 
   <button id="spinBtn">룰렛 돌리기</button>
@@ -181,12 +148,6 @@
 
       const addBtn = document.getElementById("addBtn");
       const spinBtn = document.getElementById("spinBtn");
-      const saveBtn = document.getElementById("saveBtn");
-      const loadBtn = document.getElementById("loadBtn");
-      const clearBtn = document.getElementById("clearBtn");
-      const deletePresetBtn = document.getElementById("deletePresetBtn");
-      const presetNameInput = document.getElementById("presetName");
-      const presetList = document.getElementById("presetList");
 
       addBtn.addEventListener("click", () => addItem());
       spinBtn.addEventListener("click", () => {
@@ -194,28 +155,21 @@
         spinSound.play();
         spinRoulette();
       });
-      saveBtn.addEventListener("click", () => savePreset());
-      loadBtn.addEventListener("click", () => loadPreset());
-      clearBtn.addEventListener("click", () => {
-        if (confirm("정말 모든 항목을 초기화하시겠습니까?")) {
-          items = [];
-          updateItemList();
-        }
-      });
-      deletePresetBtn.addEventListener("click", () => deletePreset());
 
       function addItem() {
         const name = document.getElementById("itemName").value.trim();
-        const chance = parseInt(document.getElementById("itemChance").value);
+        const chance = parseFloat(document.getElementById("itemChance").value);
+
         if (!name || isNaN(chance) || chance <= 0) return;
 
         const currentTotal = items.reduce((sum, item) => sum + item.chance, 0);
-        if (currentTotal + chance > 100) {
-          alert(`총 확률이 100%를 초과할 수 없습니다. 현재: ${currentTotal}%, 추가 시: ${currentTotal + chance}%`);
+
+        if ((currentTotal + chance).toFixed(2) > 100) {
+          alert(`총 확률이 100%를 초과할 수 없습니다.\n현재: ${currentTotal.toFixed(2)}%, 추가 시: ${(currentTotal + chance).toFixed(2)}%`);
           return;
         }
 
-        items.push({ name, chance });
+        items.push({ name, chance: parseFloat(chance.toFixed(2)) });
         updateItemList();
         document.getElementById("itemName").value = "";
         document.getElementById("itemChance").value = "";
@@ -235,7 +189,7 @@
           li.style.color = color;
           li.innerHTML = `
             <span class="item-label">${index + 1}. ${item.name}</span>
-            <span class="item-chance">(${item.chance}%)</span>
+            <span class="item-chance">(${item.chance.toFixed(2)}%)</span>
           `;
           const delBtn = document.createElement("button");
           delBtn.textContent = "삭제";
@@ -252,20 +206,20 @@
         }
 
         const total = items.reduce((sum, item) => sum + item.chance, 0);
-        if (total < 100) {
-          alert(`총 확률이 100%가 아닙니다. 현재: ${total}%`);
+        if (total.toFixed(2) < 100) {
+          alert(`총 확률이 100%가 아닙니다. 현재: ${total.toFixed(2)}%`);
           return;
         }
 
         const resultDiv = document.getElementById("result");
         let elapsed = 0;
-        const duration = 5000; // 5초
+        const duration = 5000;
         const intervalTime = 100;
 
         const interval = setInterval(() => {
-          const tempItemIndex = Math.floor(Math.random() * items.length);
-          const tempItem = items[tempItemIndex];
-          const color = rainbowColors[tempItemIndex % rainbowColors.length];
+          const tempIndex = Math.floor(Math.random() * items.length);
+          const tempItem = items[tempIndex];
+          const color = rainbowColors[tempIndex % rainbowColors.length];
 
           resultDiv.classList.remove("spin-flash");
           void resultDiv.offsetWidth;
@@ -285,8 +239,6 @@
                 const winColor = rainbowColors[i % rainbowColors.length];
                 resultDiv.textContent = `🎯 당첨 벌칙: ${items[i].name}`;
                 resultDiv.style.color = winColor;
-
-                // 🔊 결과 사운드 재생
                 resultSound.currentTime = 0;
                 resultSound.play();
                 return;
@@ -295,58 +247,6 @@
           }
         }, intervalTime);
       }
-
-      function savePreset() {
-        const name = presetNameInput.value.trim();
-        if (!name) {
-          alert("프리셋 이름을 입력하세요.");
-          return;
-        }
-        localStorage.setItem("roulettePreset_" + name, JSON.stringify(items));
-        updatePresetList();
-        alert(`프리셋 '${name}'이 저장되었습니다.`);
-      }
-
-      function loadPreset() {
-        const selected = presetList.value;
-        if (!selected) {
-          alert("불러올 프리셋을 선택하세요.");
-          return;
-        }
-        const data = localStorage.getItem("roulettePreset_" + selected);
-        if (data) {
-          items = JSON.parse(data);
-          updateItemList();
-          alert(`프리셋 '${selected}'이 불러와졌습니다.`);
-        }
-      }
-
-      function deletePreset() {
-        const selected = presetList.value;
-        if (!selected) {
-          alert("삭제할 프리셋을 선택하세요.");
-          return;
-        }
-        if (confirm(`정말 프리셋 '${selected}'을 삭제하시겠습니까?`)) {
-          localStorage.removeItem("roulettePreset_" + selected);
-          updatePresetList();
-        }
-      }
-
-      function updatePresetList() {
-        presetList.innerHTML = "";
-        Object.keys(localStorage)
-          .filter(key => key.startsWith("roulettePreset_"))
-          .map(key => key.replace("roulettePreset_", ""))
-          .forEach(name => {
-            const option = document.createElement("option");
-            option.value = name;
-            option.textContent = name;
-            presetList.appendChild(option);
-          });
-      }
-
-      updatePresetList();
     });
   </script>
 </body>
